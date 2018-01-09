@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="IDBStore.js"></script>
+  <script src="./vue.2.5.13.min.js"></script>
+  <style>
+    ul {
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+      padding: 20px;
+      float: left;margin-right: 20px
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <ul>
+    <li v-for="(it, index) in lessons">
+      {{it.lessonId}} - {{it.name}} - {{it.begin}} - {{it.end}} - {{it.person}} - {{it.remark}}
+    </li>
+  </ul>
+
+  <ul>
+    <li v-for="(it, index) in homeworks">
+      {{it.homeworkdId}} - {{it.name}}
+    </li>
+  </ul>
+</div>
+<script>
+  let lessons = []
+  let homeworks = []
+
+  for (let i = 100; i < 111; i++) {
+    lessons.push({
+      "lessonId": i,
+      "name": "第" + i + "个项目",
+      "begin": "2017-07-16",
+      "end": "2057-07-16",
+      "person": "p" + i,
+      "remark": "测试测试" + i
+    })
+    homeworks.push({
+      'homeworkdId': i,
+      'name':'作业' + i
+    })
+  }
+
+  let db = window.db = new IDBStore({
+    dbVersion: 1,
+    dbName: 'IDBStore',
+    storeList:[
+      {name: 'lesson', key:'lessonId'},
+      {name: 'test', key:'test'}
+    ]
+  })
+
+  let app = new Vue({
+    el: '#app',
+    data() {
+      return {
+        lessons: [],
+        homeworks:[]
+      }
+    },
+    mounted() {
+      db.open().then(() => {
+        db.putAllData('lesson', lessons)
+        db.showAllData('lesson').then((res) => {
+          this.lessons = res
+        })
+
+        db.createStore({name:'homework', key:'homeworkdId'}).then(() => {
+          db.putAllData('homework', homeworks)
+          db.showAllData('homework').then((res) => {
+            this.homeworks = res
+          })
+
+          db.put('homework', {'homeworkdId': 200, 'name':'作业' + 200}).then(() => {
+            db.showAllData('homework').then((res) => {
+              this.homeworks = res
+            })
+          })
+        })
+      })
+
+      setTimeout(() => {
+        db.clearStore('test')
+      }, 5000)
+    }
+  })
+</script>
+</body>
+</html>
